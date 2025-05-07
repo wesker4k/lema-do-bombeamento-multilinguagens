@@ -1,18 +1,20 @@
-# Linguagem 1: L = { a^n b^n | n ≥ 0 } (não regular)
-def linguagem1(w):
+def pertence_anbn(w: str) -> bool:
+    """
+    Verifica se a palavra w pertence à linguagem L = { aⁿbⁿ | n ≥ 0 }.
+    """
+    n = len(w)
     a_count = 0
-    i = 0
-    while i < len(w) and w[i] == 'a':
-        a_count += 1
-        i += 1
-    b_count = 0
-    while i < len(w) and w[i] == 'b':
-        b_count += 1
-        i += 1
-    return i == len(w) and a_count == b_count
+    for c in w:
+        if c == 'a':
+            a_count += 1
+        else:
+            break
+    return w == 'a' * a_count + 'b' * a_count
 
-# Linguagem 2: L = { a^n b^m | n, m ≥ 0 } (regular)
-def linguagem2(w):
+def pertence_anbm(w: str) -> bool:
+    """
+    Verifica se a palavra w pertence à linguagem L = { aⁿbᵐ | n, m ≥ 0 }.
+    """
     i = 0
     while i < len(w) and w[i] == 'a':
         i += 1
@@ -20,76 +22,101 @@ def linguagem2(w):
         i += 1
     return i == len(w)
 
-# Linguagem 3: L = { ww | w ∈ {a, b}* } (não regular)
-def linguagem3(w):
+def pertence_ww(w: str) -> bool:
+    """
+    Verifica se w pertence à linguagem L = { ww | w ∈ {a, b}* }.
+    """
     n = len(w)
     if n % 2 != 0:
         return False
-    mid = n // 2
-    return w[:mid] == w[mid:]
+    meio = n // 2
+    return w[:meio] == w[meio:]
 
-# Função principal de teste do lema
-def testar_lema_bombeamento(linguagem, p, w):
-    if len(w) < p:
-        print("Erro: |w| deve ser maior ou igual a p.")
-        return
+# Dicionário de linguagens disponíveis (atualizado)
+linguagens_disponiveis = {
+    '1': {
+        'descricao': 'L = { aⁿbⁿ | n ≥ 0 }',
+        'funcao': pertence_anbn
+    },
+    '2': {
+        'descricao': 'L = { aⁿbᵐ | n, m ≥ 0 }',
+        'funcao': pertence_anbm
+    },
+    '3': {
+        'descricao': 'L = { ww | w ∈ {a, b}* }',
+        'funcao': pertence_ww
+    }
+}
 
-    print(f"\nTestando w = '{w}' com p = {p}")
+def aplicar_lema_bombeamento(w: str, p: int, linguagem_func) -> None:
+    """
+    Simula o lema do bombeamento para uma linguagem específica.
+    """
+    print(f"\nPalavra w: '{w}' (|w| = {len(w)})")
+    print(f"Comprimento mínimo de bombeamento p: {p}\n")
+
     encontrou_quebra = False
 
     for i in range(1, p + 1):
-        for j in range(i):
-            x = w[:j]
-            y = w[j:i]
-            z = w[i:]
-            if y == "":
+        x = w[:i]
+        for j in range(1, p - i + 2):  # Garante |xy| ≤ p e |y| ≥ 1
+            if i + j > len(w):
                 continue
+            y = w[i:i+j]
+            z = w[i+j:]
 
-            print(f"\nTestando divisão: x='{x}', y='{y}', z='{z}'")
+            print(f"Divisão {i}-{j}: x='{x}', y='{y}', z='{z}'")
 
-            for i_val in [0, 1, 2]:
-                teste = x + y * i_val + z
-                pertence = linguagem(teste)
-                print(f"  i={i_val}: '{teste}' -> {'PERTENCE' if pertence else 'NÃO PERTENCE'}")
+            for k in [0, 1, 2]:
+                nova = x + (y * k) + z
+                pertence = linguagem_func(nova)
+                status = "PERTENCE" if pertence else "NÃO PERTENCE"
+                print(f"  i={k}: {nova} → {status}")
+
                 if not pertence:
                     encontrou_quebra = True
-                    print("  >> Lema FALHA para esta divisão.")
-                    break
+                    print("  → Quebra detectada! ←")
 
-            if encontrou_quebra:
-                break
-        if encontrou_quebra:
-            break
+            print("-" * 50)
 
     if encontrou_quebra:
-        print("\nConclusão: A linguagem NÃO PODE ser regular (lema falha).")
+        print("\n✅ Conclusão: A linguagem NÃO É REGULAR (lema violado).")
     else:
-        print("\nConclusão: Nenhuma quebra encontrada. O lema não foi violado com esta entrada.")
-
-
-def escolher_linguagem():
-    print("Escolha uma linguagem para testar:")
-    print("1 - L = { a^n b^n | n ≥ 0 } (não regular)")
-    print("2 - L = { a^n b^m | n, m ≥ 0 } (regular)")
-    print("3 - L = { ww | w ∈ {a,b}* } (não regular)")
-    escolha = input("Digite 1, 2 ou 3: ")
-
-    if escolha == "1":
-        return linguagem1
-    elif escolha == "2":
-        return linguagem2
-    elif escolha == "3":
-        return linguagem3
-    else:
-        print("Escolha inválida.")
-        return escolher_linguagem()
-
-def main():
-    linguagem = escolher_linguagem()
-    w = input("\nDigite a cadeia w: ")
-    p = int(input("Digite o valor de bombeamento p (p ≤ |w|): "))
-    testar_lema_bombeamento(linguagem, p, w)
-
+        print("\n❌ Conclusão: Nenhuma quebra encontrada. O lema não foi suficiente.")
 
 if __name__ == "__main__":
-    main()
+    # Seleção da linguagem
+    print("Selecione a linguagem:")
+    for key in linguagens_disponiveis:
+        print(f"{key}. {linguagens_disponiveis[key]['descricao']}")
+    opcao = input("Opção: ").strip()
+
+    if opcao not in linguagens_disponiveis:
+        print("Opção inválida!")
+        exit()
+
+    linguagem = linguagens_disponiveis[opcao]
+    funcao_verificacao = linguagem['funcao']
+    print(f"\n💡 Linguagem selecionada: {linguagem['descricao']}")
+
+    # Entrada da cadeia w
+    w = input("\nDigite a cadeia w (ex: aabb para L1): ").strip()
+    if not funcao_verificacao(w):
+        print(f"Erro: '{w}' não pertence à linguagem!")
+        exit()
+
+    # Entrada do p
+    while True:
+        try:
+            p = int(input("Digite p (comprimento de bombeamento): "))
+            if p <= 0:
+                print("p deve ser positivo!")
+            elif len(w) < p:
+                print(f"Erro: |w|={len(w)} deve ser ≥ p={p}!")
+            else:
+                break
+        except ValueError:
+            print("Digite um número inteiro válido!")
+
+    # Executa a análise
+    aplicar_lema_bombeamento(w, p, funcao_verificacao)
