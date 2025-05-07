@@ -66,7 +66,6 @@ def testar_lema_bombeamento(linguagem, p, w):
     else:
         print("\nConclusão: Nenhuma quebra encontrada. O lema não foi violado com esta entrada.")
 
-# ------------------ INTERFACE ------------------
 
 def escolher_linguagem():
     print("Escolha uma linguagem para testar:")
@@ -91,6 +90,6 @@ def main():
     p = int(input("Digite o valor de bombeamento p (p ≤ |w|): "))
     testar_lema_bombeamento(linguagem, p, w)
 
-# Executa o programa corretamente
+
 if __name__ == "__main__":
     main()
